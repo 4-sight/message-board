@@ -4,7 +4,7 @@ const threadSchema = new mongoose.Schema({
     text: String,
     created_on: {type: Date, default: Date.now },
     bumped_on: {type: Date, default: Date.now },
-    reported: Boolean,
+    reported: {type: Boolean, default: false},
     delete_password: String,
     replies: [String]
 })
@@ -19,7 +19,15 @@ threadSchema.pre('save', next => {
 })
 
 const createBoard = (boardName) => {
-    const Board = mongoose.model(boardName, threadSchema, 'boards')
+    const Board = mongoose.model('board', threadSchema, boardName)
+
+    //Methods
+    Board.createThread = function(text, password) {
+        return this.create({
+            text: text,
+            delete_password: password,
+        })
+    }
 
     return Board
 }
