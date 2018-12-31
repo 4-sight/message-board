@@ -26,18 +26,22 @@ suite('Functional Tests', function() {
     
     suite('POST', function() {
       
-      test('', async() => {
-        let post1 = chai.request(server)
+      test('post 2 threads to board for testing', (done) => {
+        chai.request(server)
           .post('/api/threads/test')
           .send({ text: text1, delete_password: pass})
+          .end((err, res) => {
+            assert.equal(res.status, 200)
+          })
 
-        let post2 = chai.request(server)
+        chai.request(server)
           .post('/api/threads/test')
           .send({ text: text2, delete_password: pass})
+          .end((err, res) => {
+            assert.equal(res.status, 200)
+          })
 
-        let [res1, res2] = await Promise.all([post1, post2])
-        assert.equal(res1.status, 200)
-        assert.equal(res2.status, 200)
+        done()
       })
 
     });
