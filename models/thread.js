@@ -46,17 +46,78 @@ const createBoard = (boardName) => {
 
   Board.createReply = function(threadId, text, password) {
     return this.findByIdAndUpdate(
-      threadId,
-      { $push: {
-         replies: { 
-          text: text,
-          delete_password: password
-          }
-        },
-        $set: {
-          bumped_on: now
+      threadId, {
+        $push: {
+        replies: { 
+        text: text,
+        delete_password: password
         }
+      },
+      $set: { bumped_on: now }
+    })
+  }
+
+  Board.deleteThread = function(threadId, password) {
+    return this.findOneAndDelete({
+      _id: threadId,
+      delete_password: password
+    })
+  }
+
+  Board.deleteReply = function(threadId, replyId, password) {
+    return this.findOneAndUpdate(
+      {
+        _id: threadId,
+        'replies._id': replyId,
+        'replies.delete_password': password
+      },
+      { $set: { 'replies.$.text': '[deleted]' }})
+  }
+
+  Board.reportThread = function(threadId) {
+    return this.findByIdAndUpdate(
+      threadId,
+      { $set: { reported: true }}
+    )
+  }
+
+  Board.reportReply = function(threadId, replyId) {
+    return this.findOneAndUpdate(
+      {
+        _id: threadId,
+        'replies._id': replyId
+      },
+      { $set: { 'replies.$.reported': true }}
+    )
+  }
+
+  Board.returnEntireThread = function(threadId) {
+    return this.findById(
+      threadId,
+      { 
+        reported: 0,
+        delete_password: 0,
+        'replies.reported': 0,
+        'replies.delete_password': 0
       }
+    )
+  }
+
+  Board.returnRecent = function() {
+    return this.aggregate(
+      [
+        { $match: {}},
+        { $sort: { bumped_on: -1 }},
+        { $limit: 10 },
+        { $project: {
+          delete_password:0,
+          reported: 0,
+          replies: {
+            delete_password: 0,
+            reported: 0
+          }
+        }}
+      ]
     )
   }
 

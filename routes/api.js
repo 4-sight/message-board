@@ -29,26 +29,50 @@ module.exports = function (app) {
 
     .get(async (req, res) => {
       const Board = createBoard(req.params.board)
-      res.json({
-        _id: "2",
-        text: "test text",
-        created_on: "Tuesday",
-        bumped_on: "later on tuesday",
-        replies: [
-          {
-            text: "hello",
-            created_on: "wednesday"
+      let trimmed
+      try{ 
+        let response = await Board.returnRecent()
+        trimmed = response.map(thread => {
+          return {
+            _id: thread._id,
+            text: thread.text,
+            created_on: thread.created_on,
+            bumped_on: thread.bumped_on,
+            replies: thread.replies.slice(thread.replies.length -3)
           }
-        ]
-      })
+        })
+      }
+      catch(err){
+        console.error('failed to get recent threads')
+        res.send('unable to get threads')
+      }
+      res.json(trimmed)
     })
 
     .delete(async (req, res) => {
-      const Board = createBoard(req.params.board)
+      const { board } = req.params
+      const { thread_id, delete_password } = req.body
+      const Board = createBoard(board)
+
+      try{ await Board.deleteThread(thread_id, delete_password)}
+      catch(err){ 
+        console.error(`failed to delete thread id: ${thread_id}`)
+        res.send('incorrect password')
+      }
+      res.send('success')
     })
 
     .put(async (req, res) => {
-      const Board = createBoard(req.params.board)
+      const { board } = req.params
+      const { thread_id } = req.body
+      const Board = createBoard(board)
+
+      try{ await Board.reportThread(thread_id)}
+      catch(err){ 
+        console.error(`failed to report thread id: ${thread_id}`)
+        res.send('failed to report')
+      }
+      res.send('success')
     })
   
   //=================================================================
@@ -69,15 +93,43 @@ module.exports = function (app) {
     })
 
     .get(async (req, res) => {
-      const Board = createBoard(req.params.board)
+      const { board } = req.params
+      const { thread_id } = req.query
+      const Board = createBoard(board)
+      let response
+
+      try{ response = await Board.returnEntireThread(thread_id)}
+      catch(err){
+        console.error('failed to find thread')
+        res.send('invalid id')
+      }
+      res.json(response)
     })
 
     .delete(async (req, res) => {
-      const Board = createBoard(req.params.board)
+      const { board } = req.params
+      const { thread_id, reply_id, delete_password } = req.body
+      const Board = createBoard(board)
+
+      try{ await Board.deleteReply(thread_id, reply_id, delete_password)}
+      catch(err){ 
+        console.error(`failed to delete reply id: ${reply_id}`)
+        res.send('incorrect password')
+      }
+      res.send('success')
     })
 
     .put(async (req, res) => {
-      const Board = createBoard(req.params.board)
+      const { board } = req.params
+      const { thread_id, reply_id } = req.body
+      const Board = createBoard(board)
+
+      try{ await Board.reportReply(thread_id, reply_id)}
+      catch(err){ 
+        console.error(`failed to report reply id: ${reply_id}`)
+        res.send('failed to report reply')
+      }
+      res.send('success')
     })
 
 };
