@@ -53,13 +53,15 @@ module.exports = function (app) {
       const { board } = req.params
       const { thread_id, delete_password } = req.body
       const Board = createBoard(board)
+      let response
 
-      try{ await Board.deleteThread(thread_id, delete_password)}
+      try{ response = await Board.deleteThread(thread_id, delete_password)}
       catch(err){ 
         console.error(`failed to delete thread id: ${thread_id}`)
         res.send('incorrect password')
       }
-      res.send('success')
+      if (!response) { res.send('incorrect password')}
+      else {res.send('success')}
     })
 
     .put(async (req, res) => {
@@ -72,7 +74,7 @@ module.exports = function (app) {
         console.error(`failed to report thread id: ${thread_id}`)
         res.send('failed to report')
       }
-      res.send('success')
+      res.send('reported')
     })
   
   //=================================================================
@@ -110,13 +112,15 @@ module.exports = function (app) {
       const { board } = req.params
       const { thread_id, reply_id, delete_password } = req.body
       const Board = createBoard(board)
-
-      try{ await Board.deleteReply(thread_id, reply_id, delete_password)}
+      let response
+      
+      try{ response = await Board.deleteReply(thread_id, reply_id, delete_password)}
       catch(err){ 
         console.error(`failed to delete reply id: ${reply_id}`)
         res.send('incorrect password')
       }
-      res.send('success')
+      if(!response) { res.send('incorrect password')}
+      else {res.send('success')}
     })
 
     .put(async (req, res) => {
@@ -129,7 +133,7 @@ module.exports = function (app) {
         console.error(`failed to report reply id: ${reply_id}`)
         res.send('failed to report reply')
       }
-      res.send('success')
+      res.send('reported')
     })
 
 };

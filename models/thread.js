@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const ObjectId = require('mongodb').ObjectId
 
 const replySchema = new mongoose.Schema({
   text: String,
@@ -58,8 +59,9 @@ const createBoard = (boardName) => {
   }
 
   Board.deleteThread = function(threadId, password) {
+
     return this.findOneAndDelete({
-      _id: threadId,
+      _id: ObjectId(threadId),
       delete_password: password
     })
   }
@@ -67,7 +69,7 @@ const createBoard = (boardName) => {
   Board.deleteReply = function(threadId, replyId, password) {
     return this.findOneAndUpdate(
       {
-        _id: threadId,
+        _id: ObjectId(threadId),
         'replies._id': replyId,
         'replies.delete_password': password
       },
@@ -84,7 +86,7 @@ const createBoard = (boardName) => {
   Board.reportReply = function(threadId, replyId) {
     return this.findOneAndUpdate(
       {
-        _id: threadId,
+        _id: ObjectId(threadId),
         'replies._id': replyId
       },
       { $set: { 'replies.$.reported': true }}
